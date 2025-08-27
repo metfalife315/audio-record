@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record Files</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+            /* 모바일 최적화 */
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            /* 모바일 최적화 */
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #333;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .number-column {
+            width: 80px;
+            text-align: center;
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+
+        .upload-column {
+            width: 200px;
+        }
+
+        .script-column {
+            width: auto;
+        }
+
+        .upload-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            width: 100%;
+            text-align: center;
+        }
+
+        .upload-button:hover {
+            background-color: #0056b3;
+        }
+
+        .script-placeholder {
+            color: #999;
+            font-style: italic;
+        }
+
+        .example-script {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .crossed-out {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .script-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+
+        .script-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .record-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            width: 100%;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+
+        .record-button:hover {
+            background-color: #c82333;
+        }
+
+        .record-button.recording {
+            background-color: #ffc107;
+            color: #333;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .record-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            word-break: break-all;
+        }
+
+        .record-info.recording {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .record-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .control-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .play-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .download-all {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .download-all:hover {
+            background-color: #c82333;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* 모바일 반응형 디자인 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .title {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            
+            th, td {
+                padding: 8px;
+                font-size: 14px;
+            }
+            
+            .record-button {
+                padding: 12px 16px;
+                font-size: 16px;
+                /* 모바일 터치 최적화 */
+                min-height: 44px;
+            }
+            
+            .control-btn {
+                padding: 8px 12px;
+                font-size: 14px;
+                min-height: 44px;
+            }
+            
+            .download-all {
+                padding: 16px 24px;
+                font-size: 18px;
+                min-height: 50px;
+            }
+        }
+
+        /* iOS Safari 최적화 */
+        @supports (-webkit-touch-callout: none) {
+            .record-button, .control-btn, .download-all {
+                -webkit-appearance: none;
+                border-radius: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Record Files</h1>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="number-column">No.</th>
+                        <th class="upload-column">Record File uploaded</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="number-column">1</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn1" onclick="toggleRecording(1)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo1"></div>
+                            <audio class="audio-player" id="audio1" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls1" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(1)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(1)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">2</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn2" onclick="toggleRecording(2)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo2"></div>
+                            <audio class="audio-player" id="audio2" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls2" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(2)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(2)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">3</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn3" onclick="toggleRecording(3)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo3"></div>
+                            <audio class="audio-player" id="audio3" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls3" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(3)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(3)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">4</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn4" onclick="toggleRecording(4)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo4"></div>
+                            <audio class="audio-player" id="audio4" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls4" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(4)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(4)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">5</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn5" onclick="toggleRecording(5)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo5"></div>
+                            <audio class="audio-player" id="audio5" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls5" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(5)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(5)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">6</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn6" onclick="toggleRecording(6)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo6"></div>
+                            <audio class="audio-player" id="audio6" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls6" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(6)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(6)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">7</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn7" onclick="toggleRecording(7)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo7"></div>
+                            <audio class="audio-player" id="audio7" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls7" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(7)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(7)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">8</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn8" onclick="toggleRecording(8)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo8"></div>
+                            <audio class="audio-player" id="audio8" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls8" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(8)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(8)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">9</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn9" onclick="toggleRecording(9)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo9"></div>
+                            <audio class="audio-player" id="audio9" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls9" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(9)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(9)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">10</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn10" onclick="toggleRecording(10)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo10"></div>
+                            <audio class="audio-player" id="audio10" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls10" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(10)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(10)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">11</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn11" onclick="toggleRecording(11)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo11"></div>
+                            <audio class="audio-player" id="audio11" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls11" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(11)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(11)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">12</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn12" onclick="toggleRecording(12)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo12"></div>
+                            <audio class="audio-player" id="audio12" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls12" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(12)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(12)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">13</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn13" onclick="toggleRecording(13)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo13"></div>
+                            <audio class="audio-player" id="audio13" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls13" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(13)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(13)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">14</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn14" onclick="toggleRecording(14)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo14"></div>
+                            <audio class="audio-player" id="audio14" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls14" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(14)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(14)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">15</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn15" onclick="toggleRecording(15)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo15"></div>
+                            <audio class="audio-player" id="audio15" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls15" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(15)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(15)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">16</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn16" onclick="toggleRecording(16)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo16"></div>
+                            <audio class="audio-player" id="audio16" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls16" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(16)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(16)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">17</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn17" onclick="toggleRecording(17)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo17"></div>
+                            <audio class="audio-player" id="audio17" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls17" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(17)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(17)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">18</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn18" onclick="toggleRecording(18)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo18"></div>
+                            <audio class="audio-player" id="audio18" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls18" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(18)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(18)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">19</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn19" onclick="toggleRecording(19)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo19"></div>
+                            <audio class="audio-player" id="audio19" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls19" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(19)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(19)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">20</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn20" onclick="toggleRecording(20)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo20"></div>
+                            <audio class="audio-player" id="audio20" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls20" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(20)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(20)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">21</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn21" onclick="toggleRecording(21)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo21"></div>
+                            <audio class="audio-player" id="audio21" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls21" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(21)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(21)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">22</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn22" onclick="toggleRecording(22)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo22"></div>
+                            <audio class="audio-player" id="audio22" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls22" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(22)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(22)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">23</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn23" onclick="toggleRecording(23)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo23"></div>
+                            <audio class="audio-player" id="audio23" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls23" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(23)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(23)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">24</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn24" onclick="toggleRecording(24)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo24"></div>
+                            <audio class="audio-player" id="audio24" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls24" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(24)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(24)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">25</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn25" onclick="toggleRecording(25)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo25"></div>
+                            <audio class="audio-player" id="audio25" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls25" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(25)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(25)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">26</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn26" onclick="toggleRecording(26)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo26"></div>
+                            <audio class="audio-player" id="audio26" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls26" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(26)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(26)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">27</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn27" onclick="toggleRecording(27)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo27"></div>
+                            <audio class="audio-player" id="audio27" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls27" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(27)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(27)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">28</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn28" onclick="toggleRecording(28)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo28"></div>
+                            <audio class="audio-player" id="audio28" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls28" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(28)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(28)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-column">29</td>
+                        <td class="upload-column">
+                            <button class="record-button" id="recordBtn29" onclick="toggleRecording(29)">녹음 시작</button>
+                            <div class="record-info" id="recordInfo29"></div>
+                            <audio class="audio-player" id="audio29" controls style="display: none;"></audio>
+                            <div class="record-controls" id="controls29" style="display: none;">
+                                <button class="control-btn play-btn" onclick="playRecording(29)">재생</button>
+                                <button class="control-btn delete-btn" onclick="deleteRecording(29)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="actions">
+            <button class="download-all" onclick="downloadAllData()">녹음 파일 다운로드</button>
+            
+            <!-- iOS 사용자 안내 -->
+            <div id="iosNotice" style="display: none; margin-top: 15px; padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; color: #856404;">
+                <strong>📱 iOS 사용자 안내:</strong><br>
+                • Safari 브라우저 사용을 권장합니다<br>
+                • 설정 > Safari > 마이크 권한을 확인해주세요<br>
+                • Chrome, Firefox 등에서는 녹음이 제한될 수 있습니다
+            </div>
+            
+            <!-- Android 사용자 안내 -->
+            <div id="androidNotice" style="display: none; margin-top: 15px; padding: 10px; background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 5px; color: #0c5460;">
+                <strong>🤖 Android 사용자 안내:</strong><br>
+                • Chrome 브라우저 사용을 권장합니다<br>
+                • 설정 > 앱 > Chrome > 권한 > 마이크를 확인해주세요<br>
+                • 다른 브라우저에서는 녹음이 제한될 수 있습니다
+            </div>
+        </div>
+    </div>
+
+    <!-- JSZip 라이브러리 추가 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <script>
+        // 녹음 관련 변수들
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let currentRecordingRow = null;
+        let audioBlobs = {}; // 각 행별로 녹음된 오디오 저장
+
+        // 녹음 시작/중지 토글
+        function toggleRecording(rowNum) {
+            const recordBtn = document.getElementById(`recordBtn${rowNum}`);
+            const recordInfo = document.getElementById(`recordInfo${rowNum}`);
+            const audioPlayer = document.getElementById(`audio${rowNum}`);
+            const controls = document.getElementById(`controls${rowNum}`);
+
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                // 녹음 중지
+                mediaRecorder.stop();
+                recordBtn.textContent = '녹음 시작';
+                recordBtn.classList.remove('recording');
+                recordInfo.textContent = '녹음 완료!';
+                recordInfo.classList.remove('recording');
+                currentRecordingRow = null;
+            } else {
+                // 녹음 시작
+                if (currentRecordingRow && currentRecordingRow !== rowNum) {
+                    alert('다른 행에서 녹음 중입니다. 먼저 녹음을 중지해주세요.');
+                    return;
+                }
+                
+                startRecording(rowNum);
+                recordBtn.textContent = '녹음 중지';
+                recordBtn.classList.add('recording');
+                recordInfo.textContent = '녹음 중...';
+                recordInfo.classList.add('recording');
+                currentRecordingRow = rowNum;
+            }
+        }
+
+        // 녹음 시작
+        async function startRecording(rowNum) {
+            try {
+                // 모바일 최적화된 오디오 설정
+                const audioConstraints = {
+                    audio: {
+                        echoCancellation: { ideal: true },
+                        noiseSuppression: { ideal: true },
+                        autoGainControl: { ideal: true },
+                        sampleRate: { ideal: 44100 },
+                        // 모바일 최적화
+                        channelCount: { ideal: 1 },
+                        latency: { ideal: 0.01 }
+                    }
+                };
+
+                // iOS Safari 최적화
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    audioConstraints.audio = {
+                        ...audioConstraints.audio,
+                        sampleRate: { ideal: 22050 },
+                        channelCount: { ideal: 1 }
+                    };
+                }
+
+                // Android 최적화
+                if (/Android/.test(navigator.userAgent)) {
+                    audioConstraints.audio = {
+                        ...audioConstraints.audio,
+                        sampleRate: { ideal: 44100 },
+                        channelCount: { ideal: 1 }
+                    };
+                }
+
+                const stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+                
+                // 모바일 호환 MIME 타입 선택
+                let mimeType = 'audio/webm;codecs=opus';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'audio/webm';
+                }
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'audio/mp4';
+                }
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'audio/mp4;codecs=mp4a';
+                }
+                
+                // 모바일에서 MediaRecorder가 지원되지 않는 경우 대체 방법 사용
+                if (!MediaRecorder.isTypeSupported(mimeType) && (/iPad|iPhone|iPod|Android/.test(navigator.userAgent))) {
+                    await startRecordingWithAudioContext(stream, rowNum);
+                    return;
+                }
+                
+                mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: mimeType });
+                    
+                    // WAV 형식으로 변환 (편집 소프트웨어 호환성)
+                    convertToWav(audioBlob, rowNum);
+                    
+                    // 스트림 정리
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+            } catch (error) {
+                console.error('마이크 접근 오류:', error);
+                
+                let errorMessage = '';
+                if (error.name === 'NotAllowedError') {
+                    errorMessage = '마이크 접근이 거부되었습니다.\n\n해결 방법:\n1. 브라우저 주소창 왼쪽의 자물쇠 아이콘 클릭\n2. "마이크" 권한을 "허용"으로 변경\n3. 페이지 새로고침 후 다시 시도';
+                    
+                    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                        errorMessage += '\n\n※ iOS에서는 Safari 브라우저 사용을 권장합니다.';
+                    } else if (/Android/.test(navigator.userAgent)) {
+                        errorMessage += '\n\n※ Android에서는 Chrome 브라우저 사용을 권장합니다.';
+                    }
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage = '마이크를 찾을 수 없습니다.\n\n확인사항:\n1. 마이크가 연결되어 있는지 확인\n2. 다른 프로그램에서 마이크를 사용 중인지 확인\n3. 시스템 설정에서 마이크 권한 확인';
+                    
+                    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                        errorMessage += '\n\n※ iOS에서는 설정 > Safari > 마이크 권한을 확인해주세요.';
+                    } else if (/Android/.test(navigator.userAgent)) {
+                        errorMessage += '\n\n※ Android에서는 설정 > 앱 > Chrome > 권한을 확인해주세요.';
+                    }
+                } else if (error.name === 'NotReadableError') {
+                    errorMessage = '마이크에 접근할 수 없습니다.\n\n확인사항:\n1. 다른 프로그램에서 마이크를 사용 중인지 확인\n2. 브라우저를 완전히 종료 후 다시 시작\n3. 시스템 재부팅';
+                    
+                    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                        errorMessage += '\n\n※ iOS에서는 Safari 브라우저를 사용해주세요.';
+                    } else if (/Android/.test(navigator.userAgent)) {
+                        errorMessage += '\n\n※ Android에서는 Chrome 브라우저를 사용해주세요.';
+                    }
+                } else {
+                    errorMessage = '마이크 접근 중 오류가 발생했습니다.\n\n오류: ' + error.message;
+                    
+                    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                        errorMessage += '\n\n※ iOS에서는 Safari 브라우저 사용을 권장합니다.';
+                    } else if (/Android/.test(navigator.userAgent)) {
+                        errorMessage += '\n\n※ Android에서는 Chrome 브라우저 사용을 권장합니다.';
+                    }
+                }
+                
+                alert(errorMessage);
+            }
+        }
+
+        // iOS 호환성을 위한 AudioContext 기반 녹음
+        async function startRecordingWithAudioContext(stream, rowNum) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(stream);
+                const processor = audioContext.createScriptProcessor(4096, 1, 1);
+                
+                const audioChunks = [];
+                
+                processor.onaudioprocess = (e) => {
+                    const inputData = e.inputBuffer.getChannelData(0);
+                    audioChunks.push(new Float32Array(inputData));
+                };
+                
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+                
+                // 녹음 중지 함수를 전역으로 저장
+                window.stopRecordingWithAudioContext = () => {
+                    processor.disconnect();
+                    source.disconnect();
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    // Float32Array 데이터를 WAV로 변환
+                    const wavBlob = convertFloat32ArrayToWav(audioChunks, audioContext.sampleRate);
+                    audioBlobs[rowNum] = wavBlob;
+                    
+                    const audioPlayer = document.getElementById(`audio${rowNum}`);
+                    const controls = document.getElementById(`controls${rowNum}`);
+                    const recordInfo = document.getElementById(`recordInfo${rowNum}`);
+                    
+                    audioPlayer.src = URL.createObjectURL(wavBlob);
+                    audioPlayer.style.display = 'block';
+                    controls.style.display = 'flex';
+                    recordInfo.textContent = 'WAV 녹음 완료!';
+                    
+                    // 녹음 버튼 상태 복원
+                    const recordBtn = document.getElementById(`recordBtn${rowNum}`);
+                    recordBtn.textContent = '녹음 시작';
+                    recordBtn.classList.remove('recording');
+                    recordBtn.onclick = () => toggleRecording(rowNum);
+                    
+                    window.currentRecordingRow = null;
+                };
+                
+                // 녹음 버튼 상태 변경
+                const recordBtn = document.getElementById(`recordBtn${rowNum}`);
+                recordBtn.textContent = '녹음 중지';
+                recordBtn.classList.add('recording');
+                recordBtn.onclick = window.stopRecordingWithAudioContext;
+                
+                window.currentRecordingRow = rowNum;
+                
+            } catch (error) {
+                console.error('AudioContext 녹음 오류:', error);
+                alert('iOS에서 녹음 중 오류가 발생했습니다. Safari 브라우저를 사용해주세요.');
+            }
+        }
+
+        // Float32Array 데이터를 WAV로 변환
+        function convertFloat32ArrayToWav(audioChunks, sampleRate) {
+            const length = audioChunks.reduce((acc, chunk) => acc + chunk.length, 0);
+            const arrayBuffer = new ArrayBuffer(44 + length * 2);
+            const view = new DataView(arrayBuffer);
+            
+            // WAV 헤더 작성
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + length * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true); // 모노
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, length * 2, true);
+            
+            // 오디오 데이터 작성
+            let offset = 44;
+            let chunkIndex = 0;
+            let sampleIndex = 0;
+            
+            for (let i = 0; i < length; i++) {
+                if (sampleIndex >= audioChunks[chunkIndex].length) {
+                    chunkIndex++;
+                    sampleIndex = 0;
+                }
+                
+                const sample = Math.max(-1, Math.min(1, audioChunks[chunkIndex][sampleIndex]));
+                view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                offset += 2;
+                sampleIndex++;
+            }
+            
+            return new Blob([arrayBuffer], { type: 'audio/wav' });
+        }
+
+        // 녹음 재생
+        function playRecording(rowNum) {
+            const audioPlayer = document.getElementById(`audio${rowNum}`);
+            audioPlayer.play();
+        }
+
+        // WAV 형식으로 변환
+        async function convertToWav(audioBlob, rowNum) {
+            try {
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // WAV 파일 생성
+                const wavBlob = audioBufferToWav(audioBuffer);
+                audioBlobs[rowNum] = wavBlob;
+                
+                const audioPlayer = document.getElementById(`audio${rowNum}`);
+                const controls = document.getElementById(`controls${rowNum}`);
+                
+                audioPlayer.src = URL.createObjectURL(wavBlob);
+                audioPlayer.style.display = 'block';
+                controls.style.display = 'flex';
+                
+                const recordInfo = document.getElementById(`recordInfo${rowNum}`);
+                recordInfo.textContent = 'WAV 변환 완료!';
+                
+            } catch (error) {
+                console.error('WAV 변환 오류:', error);
+                // 변환 실패 시 원본 형식 사용
+                audioBlobs[rowNum] = audioBlob;
+                
+                const audioPlayer = document.getElementById(`audio${rowNum}`);
+                const controls = document.getElementById(`controls${rowNum}`);
+                
+                audioPlayer.src = URL.createObjectURL(audioBlob);
+                audioPlayer.style.display = 'block';
+                controls.style.display = 'flex';
+                
+                const recordInfo = document.getElementById(`recordInfo${rowNum}`);
+                recordInfo.textContent = '녹음 완료!';
+            }
+        }
+
+        // AudioBuffer를 WAV Blob으로 변환
+        function audioBufferToWav(buffer) {
+            const length = buffer.length;
+            const numberOfChannels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const arrayBuffer = new ArrayBuffer(44 + length * numberOfChannels * 2);
+            const view = new DataView(arrayBuffer);
+            
+            // WAV 헤더 작성
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + length * numberOfChannels * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numberOfChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numberOfChannels * 2, true);
+            view.setUint16(32, numberOfChannels * 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, length * numberOfChannels * 2, true);
+            
+            // 오디오 데이터 작성
+            let offset = 44;
+            for (let i = 0; i < length; i++) {
+                for (let channel = 0; channel < numberOfChannels; channel++) {
+                    const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
+                    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    offset += 2;
+                }
+            }
+            
+            return new Blob([arrayBuffer], { type: 'audio/wav' });
+        }
+
+        // 녹음 삭제
+        function deleteRecording(rowNum) {
+            const recordBtn = document.getElementById(`recordBtn${rowNum}`);
+            const recordInfo = document.getElementById(`recordInfo${rowNum}`);
+            const audioPlayer = document.getElementById(`audio${rowNum}`);
+            const controls = document.getElementById(`controls${rowNum}`);
+
+            recordBtn.textContent = '녹음 시작';
+            recordBtn.classList.remove('recording');
+            recordInfo.textContent = '';
+            recordInfo.classList.remove('recording');
+            audioPlayer.style.display = 'none';
+            controls.style.display = 'none';
+            
+            delete audioBlobs[rowNum];
+        }
+
+        // 모든 데이터 다운로드
+        function downloadAllData() {
+            // 녹음된 오디오 파일들을 ZIP으로 다운로드
+            downloadAudioFiles();
+        }
+
+        // 녹음된 오디오 파일들을 ZIP으로 다운로드
+        async function downloadAudioFiles() {
+            const JSZip = window.JSZip;
+            if (!JSZip) {
+                alert('JSZip 라이브러리가 로드되지 않았습니다. 오디오 파일을 개별적으로 다운로드해주세요.');
+                return;
+            }
+
+            const zip = new JSZip();
+            let hasAudioFiles = false;
+
+            for (let i = 1; i <= 29; i++) {
+                if (audioBlobs[i]) {
+                    // WAV 형식으로 저장 (편집 소프트웨어 호환성)
+                    const fileName = `행${i}_녹음파일.wav`;
+                    zip.file(fileName, audioBlobs[i]);
+                    hasAudioFiles = true;
+                }
+            }
+
+            if (hasAudioFiles) {
+                try {
+                    const zipBlob = await zip.generateAsync({ type: 'blob' });
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(zipBlob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', 'recorded_audio_files.zip');
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } catch (error) {
+                    console.error('ZIP 파일 생성 오류:', error);
+                    alert('ZIP 파일 생성 중 오류가 발생했습니다.');
+                }
+            } else {
+                alert('다운로드할 녹음 파일이 없습니다. 먼저 녹음을 완료해주세요.');
+            }
+        }
+
+        // iOS 감지 및 안내 메시지 표시
+        function checkIOSAndShowNotice() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const iosNotice = document.getElementById('iosNotice');
+            const androidNotice = document.getElementById('androidNotice');
+            
+            if (isIOS) {
+                iosNotice.style.display = 'block';
+                androidNotice.style.display = 'none'; // iOS가 아니면 Android 안내 숨김
+            } else {
+                iosNotice.style.display = 'none';
+                androidNotice.style.display = 'block'; // Android 안내 표시
+            }
+        }
+
+        // 페이지 로드 시 iOS 체크
+        window.addEventListener('load', () => {
+            checkIOSAndShowNotice();
+        });
+    </script>
+</body>
+</html>
